@@ -30,3 +30,4 @@ case class Message(message_id:Int,
                   channel_chat_created:Option[Boolean] = None,
                   migrate_to_chat_id:Option[Int] = None,
                   migrate_from_chat_id:Option[Int] = None)
+
