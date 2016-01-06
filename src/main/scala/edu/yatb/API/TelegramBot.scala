@@ -5,16 +5,29 @@ import scala.collection.parallel.mutable
 /**
   * Created by alexandr on 1/5/16.
   */
-class TelegramBot(_token:String) {
-  private val token:String = _token
-  private val apiURL = "https://api.telegram.org/bot" + token + "/"
-  private val fileURL = "https://api.telegram.org/file/bot" + token + "/"
+abstract trait TelegramBot {
 
-  val webHookURL = ""
+  protected val _token: String
+  private val _apiURL = "https://api.telegram.org/bot"
+  private val _fileURL = "https://api.telegram.org/file/bot"
+  private val _webHookURL: String = ""
+
 
   private val actions = ???
 
   def handle(req:APIRequest) = ???
 
   def action = ???
+
+
+  def getToken = _token
+  def getApiURL = _apiURL + _token + "/"
+  def getFileURL = _fileURL + _token + "/"
+  def getWebHookURL = _webHookURL
+}
+
+
+trait KukloBot extends TelegramBot {
+
+  val _token: String = ""
 }

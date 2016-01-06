@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 object BotApp extends App {
   implicit val system = ActorSystem("on-spray-can")
 
-  val service = system.actorOf(Props(new WebHookServiceActor(new TelegramBot(""))), "web-hook-service")
+  val service = system.actorOf(Props[WebHookServiceActor], "web-hook-service")
 
   implicit val timeout = Timeout(5.seconds)
 

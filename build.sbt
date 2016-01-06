@@ -6,6 +6,13 @@ scalaVersion  := "2.11.6"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
+resolvers ++= Seq(
+  "spray repo"         at "http://repo.spray.io/",
+  "sonatype releases"  at "http://oss.sonatype.org/content/repositories/releases/",
+  "sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
+  "typesafe repo"      at "http://repo.typesafe.com/typesafe/releases/"
+)
+
 libraryDependencies ++= {
   val akkaV = "2.3.9"
   val sprayV = "1.3.3"
@@ -21,4 +28,5 @@ libraryDependencies ++= {
   )
 }
 
-Revolver.settings
+//Revolver.settings
+//seq(Revolver.settings: _*)
