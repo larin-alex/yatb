@@ -1,7 +1,7 @@
 package edu.yatb
 
 import akka.actor.Actor
-import edu.yatb.API.{KukloBot, APIRequest}
+import edu.yatb.API.APIRequest
 import spray.routing._
 import spray.http._
 import edu.yatb.API.JsonImplicits._
@@ -17,19 +17,19 @@ class WebHookServiceActor extends Actor with WebHookService {
 }
 
 
-trait WebHookService extends KukloBot with HttpService {
+trait WebHookService extends ScalaHelpBot with HttpService {
 
   val route = {
 
-    path(getWebHookURL) {
+    //path(getBotURL) {
 
       post {
 
         entity(as[APIRequest]) { request =>
-          handle(request)
+          //handle(request)
           complete("Ok")
         }
       }
-    }
+    //}
   }
 }
