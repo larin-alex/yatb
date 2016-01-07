@@ -33,7 +33,7 @@ object Boot extends App with ScalaHelpBot {
 
 
     //
-    (IO(Http) ? Get(getApiURL + "/setWebHook?url=" + getBotURL)).mapTo[HttpResponse]
+    (IO(Http) ? Get(apiURL + "/setWebHook?url=" + botURL)).mapTo[HttpResponse]
       .onComplete {
 
       //
@@ -64,7 +64,7 @@ object Boot extends App with ScalaHelpBot {
 
 
     //
-    longPolling(getApiURL, startUpdatesOffset, startUpdatesLimit, startPollingTimeout)
+    longPolling(apiURL, startUpdatesOffset, startUpdatesLimit, startPollingTimeout)
   }
 
 
