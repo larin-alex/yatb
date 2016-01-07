@@ -1,24 +1,24 @@
 package edu.yatb.API
 
-import edu.yatb.API.Types.{UserProfilePhotos, ReplyKeyboardMarkup, Message, User}
-import spray.http.HttpResponse
-
-import scala.collection.parallel.mutable
-import scala.concurrent.Future
-import spray.json._
+import akka.io.IO
+import edu.yatb.API.Types.{ReplyKeyboardMarkup, Message, User}
+import spray.can.Http
 import spray.httpx.RequestBuilding._
+import akka.pattern.ask
+import scala.concurrent.Future
+
 
 /**
   * Created by alexandr on 1/5/16.
   */
 trait TelegramBot {
 
-  protected val _token: String
+  protected val token: String
 
-  protected val _apiURL = "https://api.telegram.org/bot"
-  protected val _fileURL = "https://api.telegram.org/file/bot"
+  protected val apiURL = "https://api.telegram.org/bot"
+  protected val fileURL = "https://api.telegram.org/file/bot"
 
-  protected val _webHookURL: String = ""
+  protected val botURL: String = ""
 
   def handle(req:APIRequest)
 
@@ -33,8 +33,14 @@ trait TelegramBot {
     * @param method
     * @param params
     */
-  def sendAPICall(method:String, params:JsObject) = {
+  def sendAPICall(method:String, params:Array[(String, Any)]) : Future[Message] = {
+    val url = apiURL + "/" + method
 
+    //val paramString = pretty(render(Extraction.decompose(params)))
+
+    val response = (IO(Http) ? Post(url, params)).mapTo[String]
+
+     ???
   }
 
   /***
@@ -52,7 +58,21 @@ trait TelegramBot {
                   parse_mode:Option[String] = None,
                   disable_web_page_preview:Option[Boolean] = None,
                   reply_to_message_id:Option[Int] = None,
-                  reply_markup:Option[ReplyKeyboardMarkup] = None): Future[Message] = ???
+                  reply_markup:Option[ReplyKeyboardMarkup] = None): Future[Message] = {
+
+    val method = "sendMessage"
+
+    val params =Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "text" -> text,
+      "parse_mode" -> parse_mode,
+      "disable_web_page_preview" -> disable_web_page_preview,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -63,7 +83,18 @@ trait TelegramBot {
     */
   def forwardMessage(chat_id:Int,
                      from_chat_id:Int,
-                     message_id:Int): Future[Message] = ???
+                     message_id:Int): Future[Message] = {
+
+    val method = "forwardMessage"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "from_chat_id" -> from_chat_id,
+      "message_id" -> message_id
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -79,7 +110,20 @@ trait TelegramBot {
                caption:Option[String] = None,
                reply_to_message_id:Option[Int] = None,
                reply_markup:Option[ReplyKeyboardMarkup] = None
-               ) : Future[Message] = ???
+               ) : Future[Message] = {
+
+    val method = "sendPhoto"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "photo" -> photo,
+      "caption" -> caption,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_to_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -96,7 +140,21 @@ trait TelegramBot {
                duration:Option[Int] = None,
                performer:Option[String] = None,
                title:Option[String] = None,
-               reply_to_message_id:Option[Int] = None) : Future[Message] = ???
+               reply_to_message_id:Option[Int] = None) : Future[Message] = {
+
+    val method = "sendAudio"
+
+    val params = Array[(String,Any)](
+      "chat_id" -> chat_id,
+      "audio" -> audio,
+      "duration" -> duration,
+      "performer" -> performer,
+      "title" -> title,
+      "reply_to_message_id" -> reply_to_message_id
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -109,7 +167,19 @@ trait TelegramBot {
   def sendDocument(chat_id:Int,
                   document:String,
                   reply_to_message_id:Option[Int] = None,
-                  reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = ???
+                  reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = {
+
+    val method = "sendDocument"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "document" -> document,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -122,7 +192,19 @@ trait TelegramBot {
   def sendSticker(chat_id:Int,
                  sticker:String,
                  reply_to_message_id:Option[Int] = None,
-                 reply_markup:Option[ReplyKeyboardMarkup]) : Future[Message] = ???
+                 reply_markup:Option[ReplyKeyboardMarkup]) : Future[Message] = {
+
+    val method = "sendSticker"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "sticker" -> sticker,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -139,7 +221,21 @@ trait TelegramBot {
                duration:Option[Int] = None,
                caption:Option[String] = None,
                reply_to_message_id:Option[String] = None,
-               reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = ???
+               reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = {
+
+    val method = "sendVideo"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "video" -> duration,
+      "caption" -> caption,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_mark_up" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+
+  }
 
   /***
     *
@@ -154,7 +250,20 @@ trait TelegramBot {
                voice:String,
                duration:Option[Int] = None,
                reply_to_message_id:Option[Int] = None,
-               reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = ???
+               reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = {
+
+    val method = "sendVoice"
+
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "voice" -> voice,
+      "duration" -> duration,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 
   /***
     *
@@ -169,27 +278,20 @@ trait TelegramBot {
                   latitude:Double,
                   longitude:Double,
                   reply_to_message_id:Option[Int] = None,
-                  reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = ???
+                  reply_markup:Option[ReplyKeyboardMarkup] = None) : Future[Message] = {
 
-  /***
-    *
-    * @param chat_id
-    * @param action
-    * @return
-    */
-  def sendChatAction(chat_id:Int,
-                    action:String) = ???
+    val method = "sendLocation"
 
-  /***
-    *
-    * @param user_id
-    * @param offset
-    * @param limit
-    * @return
-    */
-  def getUserProfilePhotos(user_id:Int,
-                          offset:Option[Int] = None,
-                          limit:Option[Int] = None) : Future[UserProfilePhotos] = ???
+    val params = Array[(String, Any)](
+      "chat_id" -> chat_id,
+      "latitude" -> latitude,
+      "longitude" -> longitude,
+      "reply_to_message_id" -> reply_to_message_id,
+      "reply_markup" -> reply_markup
+    )
+
+    sendAPICall(method, params)
+  }
 }
 
 
