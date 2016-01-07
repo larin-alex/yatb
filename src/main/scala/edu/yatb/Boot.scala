@@ -3,6 +3,7 @@ package edu.yatb
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
+import edu.yatb.API.APIRequest
 import spray.can.Http
 import akka.pattern.ask
 import akka.util.Timeout
@@ -21,10 +22,13 @@ object Boot extends App with ScalaHelpBot {
 
   implicit val system = ActorSystem("on-spray-can")
 
-
+  //val token = ""
 
   val useWebHook: Boolean = false
 
+  def handle(req:APIRequest) = {
+
+  }
 
   //webhook way of updating
   if (useWebHook) {

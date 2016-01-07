@@ -7,6 +7,6 @@ import edu.yatb.API.TelegramBot
  */
 trait ScalaHelpBot extends TelegramBot {
 
-  val _token: String = "149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
+  override val token: String = "149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
   val _botURL: String = "http://localhost"
 }

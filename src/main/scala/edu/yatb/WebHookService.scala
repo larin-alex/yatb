@@ -14,10 +14,14 @@ class WebHookServiceActor extends Actor with WebHookService {
   def actorRefFactory = context
 
   def receive = runRoute(route)
+
+  //override protected val token: String = _token
+
+  //override def handle(req: APIRequest): Unit = ???
 }
 
 
-trait WebHookService extends ScalaHelpBot with HttpService {
+trait WebHookService extends HttpService {
 
   val route = {
 
