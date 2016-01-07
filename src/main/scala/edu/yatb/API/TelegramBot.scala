@@ -5,8 +5,8 @@ import edu.yatb.API.Types.{ReplyKeyboardMarkup, Message, User}
 import spray.can.Http
 import spray.httpx.RequestBuilding._
 import akka.pattern.ask
-import scala.concurrent.Future
-
+import scala.concurrent.{Await, Future}
+import org.json4s.jackson.JsonMethods._
 
 /**
   * Created by alexandr on 1/5/16.
@@ -15,7 +15,7 @@ trait TelegramBot {
 
   protected val token: String
 
-  protected val apiURL = "https://api.telegram.org/bot"
+  protected val apiURL = "https://api.telegram.org/bot149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
   protected val fileURL = "https://api.telegram.org/file/bot"
 
   protected val botURL: String = ""
@@ -38,9 +38,7 @@ trait TelegramBot {
 
     //val paramString = pretty(render(Extraction.decompose(params)))
 
-    val response = (IO(Http) ? Post(url, params)).mapTo[String]
-
-     ???
+    ???
   }
 
   /***
