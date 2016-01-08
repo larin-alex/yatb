@@ -9,6 +9,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import spray.http.HttpResponse
 import spray.httpx.RequestBuilding._
+import spray.json.JsValue
 import scala.annotation.tailrec
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -22,19 +23,19 @@ object Boot extends App with ScalaHelpBot {
 
   implicit val system = ActorSystem("on-spray-can")
 
-  //val token = ""
+  override val token = "149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
 
   val useWebHook: Boolean = false
 
   def handle(req:APIRequest) = {
 
   }
+  implicit val timeout = Timeout(10.second)
 
   //webhook way of updating
   if (useWebHook) {
 
     implicit val timeout = Timeout(5.seconds)
-
 
     //
     (IO(Http) ? Get(apiURL + "/setWebHook?url=" + botURL)).mapTo[HttpResponse]

@@ -2,9 +2,10 @@ package edu.yatb
 
 import akka.actor.Actor
 import edu.yatb.API.APIRequest
+import edu.yatb.API.Util.JsonImplicits
 import spray.routing._
 import spray.http._
-import edu.yatb.API.JsonImplicits._
+import JsonImplicits._
 
 /**
   * Created by alexandr on 1/5/16.

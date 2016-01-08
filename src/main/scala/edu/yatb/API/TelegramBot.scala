@@ -1,12 +1,20 @@
 package edu.yatb.API
 
+import akka.actor.ActorSystem
 import akka.io.IO
 import edu.yatb.API.Types.{ReplyKeyboardMarkup, Message, User}
+import edu.yatb.API.Util.JsonImplicits
+import org.json4s.Extraction
 import spray.can.Http
+import spray.http.HttpResponse
 import spray.httpx.RequestBuilding._
 import akka.pattern.ask
+import spray.json._
+import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import org.json4s.jackson.JsonMethods._
+
+import JsonImplicits._
 
 /**
   * Created by alexandr on 1/5/16.
@@ -18,6 +26,10 @@ trait TelegramBot {
   protected val apiURL = "https://api.telegram.org/bot149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
   protected val fileURL = "https://api.telegram.org/file/bot"
 
+  implicit val system : ActorSystem
+
+  println(apiURL)
+
   protected val botURL: String = ""
 
   def handle(req:APIRequest)
@@ -26,20 +38,38 @@ trait TelegramBot {
     *
     * @return
     */
-  def getMe : Future[User] = ???
+  def getMe : Future[User] = {
+    ???
+  }
 
   /***
     *
     * @param method
     * @param params
+    * @tparam T
+    * @return
     */
-  def sendAPICall(method:String, params:Array[(String, Any)]) : Future[Message] = {
+  def sendAPICall[T](method:String, params:Array[(String, Any)]) : Future[T] = {
     val url = apiURL + "/" + method
 
-    //val paramString = pretty(render(Extraction.decompose(params)))
+    for(httpResponse <- (IO(Http) ? Post(url, params)).mapTo[HttpResponse]) yield {
+      val jsResponse = parse(httpResponse.entity.data.asString)
 
-    ???
+      val ok = (jsResponse \ "ok").extract[Boolean]
+
+      if(ok) {
+
+        (jsResponse \ "result").extract[T]
+
+      } else {
+
+        throw new Exception // unsuccessful request или типа того
+
+      }
+    }
   }
+
+
 
   /***
     *
@@ -60,13 +90,12 @@ trait TelegramBot {
 
     val method = "sendMessage"
 
-    val params =Array[(String, Any)](
+    val params = Array[(String, Any)](
       "chat_id" -> chat_id,
       "text" -> text,
       "parse_mode" -> parse_mode,
       "disable_web_page_preview" -> disable_web_page_preview,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_markup" -> reply_markup
+      "reply_to_message_id" -> reply_to_message_id
     )
 
     sendAPICall(method, params)
@@ -86,7 +115,7 @@ trait TelegramBot {
     val method = "forwardMessage"
 
     val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
+      "chat_id" -> JsNumber(chat_id),
       "from_chat_id" -> from_chat_id,
       "message_id" -> message_id
     )
@@ -290,10 +319,4 @@ trait TelegramBot {
 
     sendAPICall(method, params)
   }
-}
-
-
-trait KukloBot extends TelegramBot {
-
-  val _token: String = ""
 }

@@ -10,7 +10,8 @@ resolvers ++= Seq(
   "spray repo"         at "http://repo.spray.io/",
   "sonatype releases"  at "http://oss.sonatype.org/content/repositories/releases/",
   "sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
-  "typesafe repo"      at "http://repo.typesafe.com/typesafe/releases/"
+  "typesafe repo"      at "http://repo.typesafe.com/typesafe/releases/",
+  "Artima Maven Repository" at "http://repo.artima.com/releases"
 )
 
 libraryDependencies ++= {
@@ -25,7 +26,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"   %%  "akka-actor"    % akkaV,
     "com.typesafe.akka"   %%  "akka-testkit"  % akkaV   % "test",
     "org.specs2"          %%  "specs2-core"   % "2.3.11" % "test",
-    "org.json4s"          %%  "json4s-jackson" % "3.2.11"
+    "org.json4s"          %%  "json4s-jackson" % "3.2.11",
   )
 }
 
