@@ -13,20 +13,73 @@ import org.json4s.jackson.JsonMethods._
   */
 trait TelegramBot {
 
-  protected val token: String
+  protected val _token: String
 
-  protected val apiURL = "https://api.telegram.org/bot149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
-  protected val fileURL = "https://api.telegram.org/file/bot"
+  protected val _apiURL = "https://api.telegram.org/bot"
+  protected val _fileURL = "https://api.telegram.org/file/bot"
 
-  protected val botURL: String = ""
+  protected val _botURL: String
+
+
+  def apiURL = _apiURL + _token
+  def botURL = _botURL
+
 
   def handle(req:APIRequest)
+
+
+  //
+  def processMessage(message: Message): Unit = {
+
+    message match {
+
+      //case of command
+      case msg if msg.text.startsWith("/") => {
+
+        //
+        msg.text match {
+
+          //
+          case "/ping" | msg.text if msg.text.startsWith("/ping ") => {
+
+            //
+            sendMessage(chat_id = msg.chat.id,
+              text = "Pong!",
+              parse_mode = None,
+              disable_web_page_preview = None,
+              reply_to_message_id = Some(msg.message_id),
+              reply_markup = None)
+          }
+
+
+          //
+          case unknownCommand => {
+
+            //
+            sendMessage(chat_id = msg.chat.id,
+              text = "i dont know this command - '" + unknownCommand + "', sorry",
+              parse_mode = None,
+              disable_web_page_preview = None,
+              reply_to_message_id = Some(msg.message_id),
+              reply_markup = None)
+          }
+        }
+      }
+
+
+      //
+      case _ => {}
+    }
+  }
+
+
 
   /***
     *
     * @return
     */
   def getMe : Future[User] = ???
+
 
   /***
     *
@@ -40,6 +93,7 @@ trait TelegramBot {
 
     ???
   }
+
 
   /***
     *

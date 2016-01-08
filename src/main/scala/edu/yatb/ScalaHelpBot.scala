@@ -1,12 +1,15 @@
 package edu.yatb
 
 import edu.yatb.API.TelegramBot
+import com.typesafe.config._
+
 
 /**
  * Created by Alexander on 07.01.2016.
  */
 trait ScalaHelpBot extends TelegramBot {
 
-  override val token: String = "149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
-  val _botURL: String = "http://localhost"
+  protected val _token: String = ConfigFactory.load().getString("ScalaHelpBot.Token")
+  protected val _botURL: String = ConfigFactory.load().getString("ScalaHelpBot.BotURL")
+
 }
