@@ -2,10 +2,10 @@ package edu.yatb
 
 import akka.actor.Actor
 import edu.yatb.API.APIRequest
-import edu.yatb.API.Util.JsonImplicits
+import edu.yatb.API.Types._
 import spray.routing._
 import spray.http._
-import JsonImplicits._
+import edu.yatb.API.JsonImplicits._
 
 /**
   * Created by alexandr on 1/5/16.
@@ -31,6 +31,8 @@ trait WebHookService extends HttpService {
       post {
 
         entity(as[APIRequest]) { request =>
+        //entity(as[Message]) { request =>
+
           //handle(request)
           complete("Ok")
         }

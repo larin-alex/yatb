@@ -3,13 +3,13 @@ package edu.yatb
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
-import edu.yatb.API.APIRequest
+import com.typesafe.config.ConfigFactory
+import org.json4s.jackson.Serialization
 import spray.can.Http
 import akka.pattern.ask
 import akka.util.Timeout
 import spray.http.HttpResponse
 import spray.httpx.RequestBuilding._
-import spray.json.JsValue
 import scala.annotation.tailrec
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -19,23 +19,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by alexandr on 1/5/16.
   */
-object Boot extends App with ScalaHelpBot {
+object Boot extends App /*with ScalaHelpBot*/ {
 
   implicit val system = ActorSystem("on-spray-can")
 
-  override val token = "149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
+  val apiURL = ConfigFactory.load().getString("TelegramBot.ApiURL") + ConfigFactory.load().getString("ScalaHelpBot.Token")
+  val botURL = ConfigFactory.load().getString("ScalaHelpBot.BotURL")
+
 
   val useWebHook: Boolean = false
 
-  def handle(req:APIRequest) = {
-
-  }
-  implicit val timeout = Timeout(10.second)
 
   //webhook way of updating
   if (useWebHook) {
 
     implicit val timeout = Timeout(5.seconds)
+
 
     //
     (IO(Http) ? Get(apiURL + "/setWebHook?url=" + botURL)).mapTo[HttpResponse]
@@ -63,9 +62,9 @@ object Boot extends App with ScalaHelpBot {
   } else { //get updates "manually"
 
     //
-    val startUpdatesOffset = 334905317
-    val startUpdatesLimit = 1
-    val startPollingTimeout = 20
+    val startUpdatesOffset = ConfigFactory.load().getLong("ScalaHelpBot.UpdatesOffset")
+    val startUpdatesLimit = ConfigFactory.load().getLong("ScalaHelpBot.UpdatesLimit")
+    val startPollingTimeout = ConfigFactory.load().getLong("ScalaHelpBot.PollingTimeout")
 
 
     //
@@ -74,45 +73,77 @@ object Boot extends App with ScalaHelpBot {
 
 
   @tailrec
-  def longPolling(URL: String, updatesOffset: Long, updatesLimit: Long = 1, pollingTimeout: Long = 20): Unit = {
+  def longPolling(apiURL: String, updatesOffset: Long, updatesLimit: Long = 1, pollingTimeout: Long = 20): Unit = {
+    import org.json4s._
+    import org.json4s.jackson.JsonMethods._
+    import edu.yatb.API.Types._
 
     //
-    var entitiesProcessed: Int = 0
+    //implicit val formats = DefaultFormats
+    implicit val formats = {
+      Serialization.formats(FullTypeHints(List(classOf[Message])))
+    }
 
     //
     implicit val timeout = Timeout(20.seconds)
 
+    //
+    val apiURLWithParams = apiURL + "/getUpdates?offset=" + updatesOffset + "&limit=" + updatesLimit + "&timeout=" + pollingTimeout
 
-    println("one more connect!!!" + URL + "/getUpdates?offset=" + updatesOffset + "&limit=" + updatesLimit + "&timeout=" + pollingTimeout)
+    //
+    var entitiesProcessed: Int = 0
 
-    val futureResponse: Future[HttpResponse] = (IO(Http) ? Get(URL + "/getUpdates?offset=" + updatesOffset + "&limit=" + updatesLimit + "&timeout=" + pollingTimeout)).mapTo[HttpResponse]
+
+
+    println("one more connect!!!" + apiURLWithParams)
+
+
+    val futureResponse: Future[HttpResponse] = (IO(Http) ? Get(apiURLWithParams)).mapTo[HttpResponse]
 
     val tryResponse: Try[HttpResponse] = Try{ Await.result(futureResponse, pollingTimeout.seconds)}
 
     tryResponse match {
 
 
-      //
+      //when we get some response - we process the response and then establish new connection, cos old connection is finished
       case Success(response) => {
 
         //run some handler
         //
-        println("!!!Success" + response.messagePart.toString + response.headers.toString())
+        val optionResponse = parse(response.entity.asString).extractOpt[Response]
+
+        if (optionResponse.isDefined && optionResponse.get.ok) {
+
+          println("!!!Success" + response.entity.asString)
+          println(optionResponse.get.toString)
+
+          var responseStr = response.entity.asString.split("\\[", 2).last //remove left part with "["
+          responseStr = responseStr.split("\\]").dropRight(1).mkString //remove right part after "]"
+          responseStr = responseStr.split(",", 2).last.dropRight(1) //remove right "}"
+          responseStr = responseStr.split(":", 2).last
+
+          println(responseStr)
+
+          val parsedMessage = parse(responseStr).extract[Message]
+          println(parsedMessage)
+        }
+
+
 
         entitiesProcessed += 1
       }
 
 
-      //
+      //when we had no updates in timeout range. We just do nothing and establish new connection - its long polling practice
       case Failure(ex) => {
 
         //
-        println("!!!Failure")
+        println("!!!No data available. Lets reconnect!")
       }
     }
 
     //make next request for updates
-    longPolling(URL, updatesOffset + entitiesProcessed)
+    longPolling(apiURL, updatesOffset + entitiesProcessed, updatesLimit, pollingTimeout)
   }
  }
 
