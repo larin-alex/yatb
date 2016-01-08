@@ -7,7 +7,7 @@ package edu.yatb.API.Util
 import edu.yatb.API.APIRequest
 import edu.yatb.API.Types._
 import spray.httpx.SprayJsonSupport
-import spray.json.DefaultJsonProtocol
+import spray.json.{RootJsonFormat, DefaultJsonProtocol}
 
 /**
  * Created by alexandr on 1/6/16.
@@ -21,7 +21,7 @@ object JsonImplicits extends DefaultJsonProtocol with SprayJsonSupport{
 
   implicit val contactJsonFormat = jsonFormat4(Contact)
 
-  implicit val documentJsonFormat = jsonFormat5(Document)
+  implicit val documentJsonFormat : RootJsonFormat[Document] = jsonFormat(Document.apply, "chat_id", "thumb", "file_name", "mime_type", "file_size")
 
   implicit val fileJsonFormat = jsonFormat3(File)
 

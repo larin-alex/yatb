@@ -125,7 +125,12 @@ object Boot extends App /*with ScalaHelpBot*/ {
           println(responseStr)
 
           val parsedMessage = parse(responseStr).extract[Message]
-          println(parsedMessage)
+
+          val bot = system.actorOf(Props[WebHookServiceActor])
+
+          bot ! parsedMessage
+
+          //println(parsedMessage)
         }
 
 

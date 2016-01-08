@@ -2,37 +2,41 @@ package edu.yatb.API
 
 import akka.actor.ActorSystem
 import akka.io.IO
-import edu.yatb.API.Types.{ReplyKeyboardMarkup, Message, User}
+import akka.util.Timeout
+import edu.yatb.API.Types.{Response, ReplyKeyboardMarkup, Message, User}
 import edu.yatb.API.Util.JsonImplicits
-import org.json4s.Extraction
 import spray.can.Http
-import spray.http.HttpResponse
+import spray.http._
 import spray.httpx.RequestBuilding._
 import akka.pattern.ask
-import spray.json._
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import org.json4s.jackson.JsonMethods._
+
+//import spray.json._
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import JsonImplicits._
-
+import org.json4s.jackson.JsonMethods._
+import org.json4s.DefaultFormats
+import org.json4s.JsonDSL._
+import org.json4s.JsonAST
 /**
   * Created by alexandr on 1/5/16.
   */
 trait TelegramBot {
 
-  protected val token: String
+  //protected val token: String
 
   protected val apiURL = "https://api.telegram.org/bot149980684:AAF-Yy1zUdJZwZwoCJeh9A8Ano5NcFaV-1A"
   protected val fileURL = "https://api.telegram.org/file/bot"
 
   implicit val system : ActorSystem
 
-  println(apiURL)
+  implicit val formats = DefaultFormats
 
   protected val botURL: String = ""
 
-  def handle(req:APIRequest)
+  //def handle(req:APIRequest)
 
   /***
     *
@@ -49,10 +53,18 @@ trait TelegramBot {
     * @tparam T
     * @return
     */
-  def sendAPICall[T](method:String, params:Array[(String, Any)]) : Future[T] = {
+  def sendAPICall[T : Manifest](method:String, params:JsonAST.JObject) : Future[T] = {
+
+    implicit val timeout = Timeout(20) //надо чтото сделать с вот этим
+
     val url = apiURL + "/" + method
 
-    for(httpResponse <- (IO(Http) ? Post(url, params)).mapTo[HttpResponse]) yield {
+    val paramString = compact( render( params ))
+
+    val req = HttpRequest(HttpMethods.POST, Uri(url), entity = HttpEntity(ContentTypes.`application/json`, paramString))
+
+    for(httpResponse <- (IO(Http) ? req).mapTo[HttpResponse]) yield {
+
       val jsResponse = parse(httpResponse.entity.data.asString)
 
       val ok = (jsResponse \ "ok").extract[Boolean]
@@ -90,13 +102,12 @@ trait TelegramBot {
 
     val method = "sendMessage"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "text" -> text,
-      "parse_mode" -> parse_mode,
-      "disable_web_page_preview" -> disable_web_page_preview,
-      "reply_to_message_id" -> reply_to_message_id
-    )
+    val params =
+      ("chat_id" -> chat_id) ~
+        ("text" -> text) ~
+        ("parse_mode" -> parse_mode) ~
+        ("disable_web_page_preview" -> disable_web_page_preview) ~
+        ("reply_to_message_id" -> reply_to_message_id)
 
     sendAPICall(method, params)
   }
@@ -114,11 +125,10 @@ trait TelegramBot {
 
     val method = "forwardMessage"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> JsNumber(chat_id),
-      "from_chat_id" -> from_chat_id,
-      "message_id" -> message_id
-    )
+    val params =
+      ("chat_id" -> chat_id) ~
+        ("from_chat_id" -> from_chat_id)~
+        ("message_id" -> message_id)
 
     sendAPICall(method, params)
   }
@@ -141,13 +151,12 @@ trait TelegramBot {
 
     val method = "sendPhoto"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "photo" -> photo,
-      "caption" -> caption,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_to_markup" -> reply_markup
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("photo" -> photo)~
+        ("caption" -> caption)~
+        ("reply_to_message_id" -> reply_to_message_id)~
+        ("reply_to_markup" -> reply_markup.toString)
 
     sendAPICall(method, params)
   }
@@ -171,14 +180,13 @@ trait TelegramBot {
 
     val method = "sendAudio"
 
-    val params = Array[(String,Any)](
-      "chat_id" -> chat_id,
-      "audio" -> audio,
-      "duration" -> duration,
-      "performer" -> performer,
-      "title" -> title,
-      "reply_to_message_id" -> reply_to_message_id
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("audio" -> audio)~
+        ("duration" -> duration)~
+        ("performer" -> performer)~
+        ("title" -> title)~
+        ("reply_to_message_id" -> reply_to_message_id)
 
     sendAPICall(method, params)
   }
@@ -198,12 +206,11 @@ trait TelegramBot {
 
     val method = "sendDocument"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "document" -> document,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_markup" -> reply_markup
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("document" -> document)~
+        ("reply_to_message_id" -> reply_to_message_id)~
+        ("reply_markup" -> reply_markup.toString)
 
     sendAPICall(method, params)
   }
@@ -223,12 +230,11 @@ trait TelegramBot {
 
     val method = "sendSticker"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "sticker" -> sticker,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_markup" -> reply_markup
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("sticker" -> sticker)~
+        ("reply_to_message_id" -> reply_to_message_id)~
+        ("reply_markup" -> reply_markup.toString)
 
     sendAPICall(method, params)
   }
@@ -252,13 +258,12 @@ trait TelegramBot {
 
     val method = "sendVideo"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "video" -> duration,
-      "caption" -> caption,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_mark_up" -> reply_markup
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("video" -> duration)~
+        ("caption" -> caption)~
+        ("reply_to_message_id" -> reply_to_message_id)~
+        ("reply_mark_up" -> reply_markup.toString)
 
     sendAPICall(method, params)
 
@@ -281,13 +286,12 @@ trait TelegramBot {
 
     val method = "sendVoice"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "voice" -> voice,
-      "duration" -> duration,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_markup" -> reply_markup
-    )
+    val params =
+      ("chat_id" -> chat_id)~
+        ("voice" -> voice)~
+        ("duration" -> duration)~
+        ("reply_to_message_id" -> reply_to_message_id)~
+        ("reply_markup" -> reply_markup.toString)
 
     sendAPICall(method, params)
   }
@@ -309,14 +313,58 @@ trait TelegramBot {
 
     val method = "sendLocation"
 
-    val params = Array[(String, Any)](
-      "chat_id" -> chat_id,
-      "latitude" -> latitude,
-      "longitude" -> longitude,
-      "reply_to_message_id" -> reply_to_message_id,
-      "reply_markup" -> reply_markup
-    )
+    val params =
+        ("chat_id" -> chat_id) ~
+        ("latitude" -> latitude) ~
+        ("longitude" -> longitude) ~
+        ("reply_to_message_id" -> reply_to_message_id) ~
+        ("reply_markup" -> reply_markup.toString)
 
     sendAPICall(method, params)
   }
+
+  def processMessage(message: Message): Unit = {
+
+    val text = message.text.get
+
+    message match {
+
+      //case of command
+      case msg if msg.text.get.startsWith("/") => {
+        //
+        msg.text.get match {
+
+          //
+          case "/ping" => {
+            //
+            sendMessage(chat_id = msg.chat.id,
+              text = "Pong!",
+              parse_mode = None,
+              disable_web_page_preview = None,
+              reply_to_message_id = Some(msg.message_id),
+              reply_markup = None)
+          }
+
+
+          //
+          case unknownCommand => {
+
+            //
+            sendMessage(chat_id = msg.chat.id,
+              text = "i dont know this command - '" + unknownCommand + "', sorry",
+              parse_mode = None,
+              disable_web_page_preview = None,
+              reply_to_message_id = Some(msg.message_id),
+              reply_markup = None)
+          }
+        }
+      }
+
+
+      //
+      case _ => {}
+    }
+  }
+
+
 }
