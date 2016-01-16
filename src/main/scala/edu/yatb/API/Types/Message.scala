@@ -3,12 +3,12 @@ package edu.yatb.API.Types
 /**
  * Created by alexandr on 1/6/16.
  */
-case class Message(message_id:Int,
+case class Message(message_id: Long,
                   from:Option[User] = None,
-                  date:Int,
-                  chat:Chat,
+                  date: Long,
+                  chat: Chat,
                   forward_from:Option[User] = None,
-                  forward_date:Option[Int] = None,
+                  forward_date:Option[Long] = None,
                   reply_to_message:Option[Message] = None,
                   text:Option[String] = None,
                   audio:Option[Audio] = None,
@@ -24,10 +24,12 @@ case class Message(message_id:Int,
                   left_chat_participant:Option[User] = None,
                   new_chat_title:Option[String] = None,
                   new_chat_photo:Option[Array[PhotoSize]] = None,
-                  delete_chat_photo:Option[Boolean] = None,
-                  group_chat_created:Option[Boolean] = None,
-                  supergroup_chat_created:Option[Boolean] = None,
-                  channel_chat_created:Option[Boolean] = None,
-                  migrate_to_chat_id:Option[Int] = None,
-                  migrate_from_chat_id:Option[Int] = None)
-
+                  delete_chat_photo:Option[Boolean] = None
+                   //,
+                  //group_chat_created:Option[Boolean] = None,
+                  //supergroup_chat_created:Option[Boolean] = None,
+                  //channel_chat_created:Option[Boolean] = None,
+                  //migrate_to_chat_id:Option[Long] = None,
+                  //migrate_from_chat_id:Option[Long] = None
+                  )
+//TODO - make smth with message of 26 fields
