@@ -1,10 +1,14 @@
 package edu.yatb.API
 
+import javax.inject.Inject
+
 import akka.actor.ActorSystem
 import akka.io.IO
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import dao.{QuoteDAO, DbService}
 import edu.yatb.API.Types._
+import edu.yatb.Models.Quote
 import edu.yatb.Util.JsonImplicits
 import org.json4s.jackson.Serialization
 import spray.can.Http
@@ -32,7 +36,7 @@ import spray.routing.SimpleRoutingApp
 /**
   * Created by alexandr on 1/5/16.
   */
-abstract class TelegramBot(botName: String) extends SimpleRoutingApp {
+abstract class TelegramBot @Inject()(val dbService: DbService, val quoteDAO: QuoteDAO)(botName: String) extends SimpleRoutingApp {
 
   protected val _botName: String = botName
 
@@ -98,6 +102,20 @@ abstract class TelegramBot(botName: String) extends SimpleRoutingApp {
 
     startServer(interface = hostURL, port = hostPort) {
 
+      get {
+
+        path(hostURL + "/showsettings") {
+
+          complete{
+
+            <html>
+              <h1>Say hello to <em>spray</em> on <em>spray-can</em>!</h1>
+              <p>(<a href="/stop?method=post">stop server</a>)</p>
+            </html>
+
+          }
+        }
+      } ~
       post {
 
         path(hostURL) {
@@ -519,7 +537,9 @@ abstract class TelegramBot(botName: String) extends SimpleRoutingApp {
       case text if text.startsWith("/") => {
 
         //
-        val command = text.split(' ').head.split('@').head
+        val parts = text.split(' ')
+        val command = parts.head.split("@").head
+        val commandParams = parts.tail.mkString
 
         command match {
 
@@ -532,6 +552,56 @@ abstract class TelegramBot(botName: String) extends SimpleRoutingApp {
               disable_web_page_preview = None,
               reply_to_message_id = Some(message.message_id),
               reply_markup = None)
+          }
+
+
+          //
+          case "/write" => {
+
+            //
+            quoteDAO.insert(Quote(None,
+              message.chat.id,
+              (if (message.from.isDefined) Some(message.from.get.id) else None),
+              commandParams)).onComplete {
+
+
+              //
+              case Success(entry) => {
+
+                //
+                sendMessage(chat_id = message.chat.id,
+                  text = "Ваше сраное сообщение было записано (" + commandParams + ")",
+                  parse_mode = None,
+                  disable_web_page_preview = None,
+                  reply_to_message_id = Some(message.message_id),
+                  reply_markup = None)
+              }
+
+              //
+              case Failure(ex) => println(ex)
+            }
+
+          }
+
+
+          //
+          case "/read" => {
+
+            //
+            quoteDAO.list2(message.chat.id, (if (message.from.isDefined) Some(message.from.get.id) else None)).map {
+
+              //
+              case quotes => {
+
+                //
+                sendMessage(chat_id = message.chat.id,
+                  text = "Вот все ваши высеры: " + quotes.map(_.text),
+                  parse_mode = None,
+                  disable_web_page_preview = None,
+                  reply_to_message_id = Some(message.message_id),
+                  reply_markup = None)
+              }
+            }
           }
 
 
